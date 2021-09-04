@@ -63,21 +63,22 @@ services:
     environment:
       - REDIS_REPLICATION_MODE=master
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.0.1
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.8.3 # 6.8.4 out
+    ports:
+      - "9209:9200"
     environment:
-      - cluster.name=demo
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    ports:
-      - 9200:9200
-  kibana:
-    image: docker.elastic.co/kibana/kibana:6.0.1
-    links:
+      - "discovery.type=single-node"
+      - "bootstrap.memory_lock=true"
+      - "ES_JAVA_OPTS=-Xms1G -Xmx1G"
+      - "xpack.security.enabled=false"
+      - "http.cors.enabled=true"
+      - "http.cors.allow-origin=*"
+  elasticsearch-head:
+    container_name: sb-elasticsearch-head
+    depends_on:
       - elasticsearch
+    image: tobias74/elasticsearch-head:6
     ports:
-      - 5601:5601
+      - "9109:9100"
 
