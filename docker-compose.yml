@@ -1,0 +1,83 @@
+version: '3'
+
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: root # Remove line for production
+      PMA_PASSWORD: root # Remove line for production
+    depends_on:
+      - redis-db-container
+    ports:
+      - "81:80"
+    restart: always
+  db:
+    build:
+      context: ./database
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3306:3306"
+    volumes:
+      - /Users/macbookpro/projects/mysql-data-test:/var/lib/mysql
+  apache:
+    build: './php-apache/'
+    depends_on:
+      - phpmyadmin
+    ports:
+      - "80:80"
+    volumes:
+      - /Users/macbookpro/Projects/web:/var/www/html
+      - /Users/macbookpro/lamp-node-stack/php-apache/apache2:/etc/apache2
+      - /Users/macbookpro/lamp-node-stack/php-apache/cli/php.ini:/etc/php/7.3/cli/php.ini
+      - /Users/macbookpro/lamp-node-stack/php-apache/fpm/php.ini:/etc/php/7.3/fpm/php.ini
+    restart: always
+  php-messenger:
+    build: './php-messenger/'
+    depends_on:
+      - apache
+    volumes:
+      - /Users/macbookpro/Projects/web:/var/www/html
+    restart: always
+  nodejs:
+    container_name: nodejs
+    build: ./nodejs
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - php-messenger
+    volumes:
+      - /Users/macbookpro/Projects/web/gedeco:/app
+  redis-db-container:
+    container_name: redis-db-container
+    build: ./redis
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "6379:6379"
+    volumes:
+      - /Users/macbookpro/Projects/redisDb/Data:/data
+    environment:
+      - REDIS_REPLICATION_MODE=master
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.0.1
+    environment:
+      - cluster.name=demo
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9200:9200
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.0.1
+    links:
+      - elasticsearch
+    ports:
+      - 5601:5601
+
