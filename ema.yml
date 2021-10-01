@@ -5,7 +5,6 @@ services:
     image: phpmyadmin/phpmyadmin
     environment:
       PMA_HOST: db
-      UPLOAD_LIMIT: 50M
       #PMA_USER: root Remove line for production
       #PMA_PASSWORD: root Remove line for production
     depends_on:
@@ -21,7 +20,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - /Users/macbookpro/projects/mariadb-data:/var/lib/mysql
+      - /home/ema/ged/mysql_data:/var/lib/mysql
   php:
     container_name: php
     build: ./php-fpm
@@ -30,19 +29,18 @@ services:
     ports:
       - "9001:9000"
     volumes:
-      - /Users/macbookpro/Projects/web:/var/www/html
-      - ./php-fpm/php/php.ini:/etc/php7/php.ini
+      - /home/ema/ged/html:/var/www/html
       - ./logs/php/error.log:/var/log/php7/error.log
-  #nginx:
-      #container_name: nginx
-      #build: ./nginx
-      #ports:
+        #nginx:
+        #container_name: nginx
+        #build: ./nginx
+        #ports:
         #- "80:80"
-      #depends_on:
+        #depends_on:
         #- php
-      #volumes:
+        #volumes:
         #- ./logs/nginx:/var/log/nginx
-        #- /Users/macbookpro/Projects/web:/var/www
+      #- /Users/macbookpro/Projects/web:/var/www
   nodejs:
     container_name: nodejs
     build: ./nodejs
@@ -52,7 +50,7 @@ services:
     depends_on:
       - apache
     volumes:
-      - /Users/macbookpro/Projects/web/gedmindef/realtime:/app
+      - /home/ema/ged/html/gedmindef/realtime:/app
   redis-db-container:
     container_name: redis-db-container
     build: ./redis
@@ -62,7 +60,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - /Users/macbookpro/Projects/redisDb/Data:/data
+      - /home/ema/ged/redis_data:/data
     environment:
       - REDIS_REPLICATION_MODE=master
   elasticsearch:
@@ -76,15 +74,15 @@ services:
       - ES_JAVA_OPTS=-Xms1G -Xmx1G
       - xpack.security.enabled=false
       - cluster.routing.allocation.disk.threshold_enabled=true
-      - cluster.routing.allocation.disk.watermark.flood_stage=400mb
-      - cluster.routing.allocation.disk.watermark.low=900mb
-      - cluster.routing.allocation.disk.watermark.high=600mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=800mb
+      - cluster.routing.allocation.disk.watermark.low=1800mb
+      - cluster.routing.allocation.disk.watermark.high=1200mb
       - xpack.security.audit.enabled=true
       - http.cors.enabled=true
       - http.cors.allow-origin=*
       - ELASTIC_PASSWORD=elastic
     volumes:
-      - /Users/macbookpro/projects/elastic:/usr/share/elasticsearch/data
+      - /home/ema/ged/elastic:/usr/share/elasticsearch/data
   elasticsearch-head:
     container_name: sb-elasticsearch-head
     depends_on:
@@ -92,13 +90,13 @@ services:
     image: tobias74/elasticsearch-head:6
     ports:
       - "9109:9100"
-  #kibana:
-    #depends_on:
+      #kibana:
+      #depends_on:
       #- elasticsearch
-    #image: "docker.elastic.co/kibana/kibana:6.8.18"
-    #ports:
+      #image: "docker.elastic.co/kibana/kibana:6.8.18"
+      #ports:
       #- "5601:5601"
-    #environment:
+      #environment:
       #- ELASTICSEARCH_URL=http://localhost:9209
       #- ELASTICSEARCH_USERNAME=elastic
       #- ELASTICSEARCH_PASSWORD=elastic
@@ -111,5 +109,5 @@ services:
       - "80:80"
     volumes:
       - ./logs/apache:/var/log/apache2/apache
-      - /Users/macbookpro/Projects/web:/var/www/html
+      - /home/ema/ged/html:/var/www/html
 
